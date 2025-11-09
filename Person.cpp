@@ -31,10 +31,10 @@ Person::Person(string inputString) : Person() {
 }
 
 bool Person::tick(int currentTime) {
-    if (currentTime % TICKS_PER_ELEVATOR_MOVE == 0){
+    if (currentTime % TICKS_PER_ELEVATOR_MOVE == 0) {
         angerLevel++;
     }
-    if (angerLevel >= MAX_ANGER){
+    if (angerLevel >= MAX_ANGER) {
         return true;
     }
     return false;
