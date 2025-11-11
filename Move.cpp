@@ -19,7 +19,7 @@
 using namespace std;
 
 Move::Move(string commandString) : Move() {
-    //TODO: Implement non-default constructor
+    
 }
 
 bool Move::isValidMove(Elevator elevators[NUM_ELEVATORS]) const {
