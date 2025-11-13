@@ -41,13 +41,13 @@ void Game::playGame(bool isAIModeIn, ifstream& gameFile) {
         // Play full turns until the building time updated to the read person's spawn turn (current turn + 1).
         // Each update() advances the simulation by exactly one tick (turn). --> next loop exit the loop
         while(building.getTime() < spturn) {
+            // print the state of the Building and check for end of game
+            building.prettyPrintBuilding(cout);
+            satisfactionIndex.printSatisfaction(cout, false);
             checkForGameEnd();
             // get and apply the next move
             Move nextMove = getMove();
             update(nextMove);
-            // print the state of the Building and check for end of game
-            building.prettyPrintBuilding(cout);
-            satisfactionIndex.printSatisfaction(cout, false);
         }
         // We are now exactly at p.getTurn(): spawn the person at the start of this turn.
         //read muti person from same turn will not enter loop(building.gettime() = spturn),and directly be spawned
@@ -58,13 +58,13 @@ void Game::playGame(bool isAIModeIn, ifstream& gameFile) {
     // After all people in the file have been spawned, keep playing turns until the game ends.
     // checkForGameEnd() will terminate the game when the win/lose/limit condition is met.
     while (true) {
+        // print the state of the Building and check for end of game
+        building.prettyPrintBuilding(cout);
+        satisfactionIndex.printSatisfaction(cout, false);
         checkForGameEnd();
         // get and apply the next move
         Move nextMove = getMove();
         update(nextMove);
-        // print the state of the Building and check for end of game
-        building.prettyPrintBuilding(cout);
-        satisfactionIndex.printSatisfaction(cout, false);
     }
 }
 
