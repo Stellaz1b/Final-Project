@@ -34,13 +34,11 @@ void Game::playGame(bool isAIModeIn, ifstream& gameFile) {
     string line;
     
     //play game during the process of adding people
-    while(getline(gameFile, line)) {
+    while(gameFile >> line) {
         Person p(line);
-        int spturn = p.getTurn();
-        
         // Play full turns until the building time updated to the read person's spawn turn (current turn + 1).
         // Each update() advances the simulation by exactly one tick (turn). --> next loop exit the loop
-        while(building.getTime() < spturn) {
+        while(building.getTime() < p.getTurn()) {
             // print the state of the Building and check for end of game
             building.prettyPrintBuilding(cout);
             satisfactionIndex.printSatisfaction(cout, false);
