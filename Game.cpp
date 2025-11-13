@@ -1,10 +1,10 @@
-﻿/*
+/*
  * Copyright 2023 University of Michigan EECS183
  *
  * Game.cpp
  * Project UID 848fee0125dbb5eb53ed294f20dbef81
  *
- * <#Names#>
+ * Yancheng Xiang
  * <#Uniqnames#>
  *
  * Final Project - Elevators
@@ -21,42 +21,47 @@ using namespace std;
 // You *must* revise this function according to the RME and spec
 // Code that will not appear in your solution is noted in the comments
 void Game::playGame(bool isAIModeIn, ifstream& gameFile) {
-    /* used to generate random numbers for spawning a randon Person
-     * these three statements will not be needed when you have
-     * finished this function */
-    std::mt19937 gen(1);
-    std::uniform_int_distribution<> floorDist(0, 9);
-    std::uniform_int_distribution<> angerDist(0, 3);
+
+    //exit status 1 if file not open
+    if (!gameFile.is_open()) {
+        exit(1);
+    }
 
     // initialize the game
     isAIMode = isAIModeIn;
     printGameStartPrompt();
     initGame(gameFile);
-
-    /* play until checkForGameEnd() stops the program
-     * you *will* modify this loop
-     */
-    while (true) {
-        // random floor and targetFloor
-        // these two statements are not needed in the finished solution
-        int src = floorDist(gen);
-        int dst = floorDist(gen);
+    string line;
+    
+    //play game during the process of adding people
+    while(getline(gameFile, line)) {
+        Person p(line);
+        int spturn = p.getTurn();
         
-        /* check that the randomly generate floor and targetFloor differ
-         * none of this if statement will appear in your finished solution
-         * Persons will be read from the file instead */
-        if (src != dst) {
-            std::stringstream ss;
-            ss << "0f" << src << "t" << dst << "a" << angerDist(gen);
-            Person p(ss.str());
-            building.spawnPerson(p);
+        // Play full turns until the building time updated to the read person's spawn turn (current turn + 1).
+        // Each update() advances the simulation by exactly one tick (turn). --> next loop exit the loop
+        while(building.getTime() < spturn) {
+            // print the state of the Building and check for end of game
+            building.prettyPrintBuilding(cout);
+            satisfactionIndex.printSatisfaction(cout, false);
+            checkForGameEnd();
+            // get and apply the next move
+            Move nextMove = getMove();
+            update(nextMove);
         }
+        // We are now exactly at p.getTurn(): spawn the person at the start of this turn.
+        //read muti person from same turn will not enter loop(building.gettime() = spturn),and directly be spawned
+        // spawnPerson() does not advance time; it just adds the person to the floor.
+        building.spawnPerson(p);
+    }
 
+    // After all people in the file have been spawned, keep playing turns until the game ends.
+    // checkForGameEnd() will terminate the game when the win/lose/limit condition is met.
+    while (true) {
         // print the state of the Building and check for end of game
         building.prettyPrintBuilding(cout);
         satisfactionIndex.printSatisfaction(cout, false);
         checkForGameEnd();
-
         // get and apply the next move
         Move nextMove = getMove();
         update(nextMove);
@@ -67,8 +72,45 @@ void Game::playGame(bool isAIModeIn, ifstream& gameFile) {
 // You *must* revise this function according to the RME and spec
 bool Game::isValidPickupList(const string& pickupList, 
                              const int pickupFloorNum) const {
+    //check pickuplist
+    Floor flr = building.getFloorByFloorNum(pickupFloorNum);
+    int groupDir = -1;
+    int numpf = flr.getNumPeople();
+    //pulse if length of list > elevator capacity
+    if(pickupList.size() > ELEVATOR_CAPACITY) {
+        return false;
+    }
+    
+    for(int i = 0; i < pickupList.size(); ++i) {
+        char chr = pickupList.at(i);
+        //pulse if not a digit
+        if (!isdigit(chr)) {
+            return false;
+        }
+        int idx = chr - '0';
+        //pulse if max idx >= num people on the floor or element not in range [0,9]
+        if (idx >= numpf || idx < 0 || idx > 9) {
+            return false;
+        }
+        //pulse if repeat
+        if (pickupList.find(chr) != i){
+            return false;
+        }
+        
+        // pulse if one's target not in same direction
+        int destf = flr.getPersonByIndex(idx).getTargetFloor();
+        int dir = (destf > pickupFloorNum);
+        if (groupDir == -1) {
+            groupDir = dir;          // first people's direction
+        }
+        else if (dir != groupDir) {
+            return false;            // others must have same dir
+        }
+    }
+    //return true only if the loop run without any pulse --> every elements in the given list is valid
     return true;
 }
+
 
 //////////////////////////////////////////////////////
 ////// DO NOT MODIFY ANY CODE BENEATH THIS LINE //////
