@@ -19,19 +19,112 @@
 using namespace std;
 
 Move::Move(string commandString) : Move() {
-    
+    // Pass move: empty string
+    if (commandString.empty()) {
+        isPass = true;
+        return;
+    }
+
+    // Game moves: save or quit
+    if (commandString.size() == 1) {
+        char c = commandString[0];
+        if (c == 'S' || c == 's') {
+            isSave = true;
+        }
+        else if (c == 'Q' || c == 'q') {
+            isQuit = true;
+        }
+        return;
+    }
+
+    // Service or pickup move: "e<id>f<floor>" or "e<id>p"
+    stringstream ss(commandString);
+    char prefix;
+    ss >> prefix;
+
+    if (prefix == 'e' || prefix == 'E') {
+        int id;
+        char action;
+        ss >> id >> action;
+        elevatorId = id;
+
+        if (action == 'f' || action == 'F') {
+            int floor;
+            ss >> floor;
+            targetFloor = floor;
+        }
+        else if (action == 'p' || action == 'P') {
+            isPickup = true;
+        }
+    }
 }
 
 bool Move::isValidMove(Elevator elevators[NUM_ELEVATORS]) const {
-    //TODO: Implement isValidMove
-    
-    //Returning false to prevent compilation error
-    return false;
+    // Pass, save, and quit moves are always valid
+    if (isPass || isSave || isQuit) {
+        return true;
+    }
+
+    // For pickup and service moves, elevatorId must be in range
+    if (elevatorId < 0 || elevatorId >= NUM_ELEVATORS) {
+        return false;
+    }
+
+    // Elevator must not already be servicing a request
+    if (elevators[elevatorId].isServicing()) {
+        return false;
+    }
+
+    // Pickup moves are valid if we reach here
+    if (isPickup) {
+        return true;
+    }
+
+    // Service moves: check targetFloor
+    if (targetFloor < 0 || targetFloor >= NUM_FLOORS) {
+        return false;
+    }
+
+    // Service move must go to a different floor
+    if (targetFloor == elevators[elevatorId].getCurrentFloor()) {
+        return false;
+    }
+
+    return true;
 }
 
-void Move::setPeopleToPickup(const string& pickupList, const int currentFloor, 
+void Move::setPeopleToPickup(const string& pickupList,
+                             const int currentFloor,
                              const Floor& pickupFloor) {
-    //TODO: Implement setPeopleToPickup
+    numPeopleToPickup = 0;
+    totalSatisfaction = 0;
+
+    int maxDistance = -1;
+    int furthestTarget = currentFloor;
+
+    for (int i = 0; i < static_cast<int>(pickupList.size()); ++i) {
+        int index = pickupList[i] - '0';
+
+        if (numPeopleToPickup < MAX_PEOPLE_PER_FLOOR) {
+            peopleToPickup[numPeopleToPickup] = index;
+            ++numPeopleToPickup;
+        }
+
+        const Person& person = pickupFloor.getPersonByIndex(index);
+
+        int anger = person.getAngerLevel();
+        totalSatisfaction += (MAX_ANGER - anger);
+
+        int personTarget = person.getTargetFloor();
+        int distance = abs(personTarget - currentFloor);
+
+        if (distance > maxDistance) {
+            maxDistance = distance;
+            furthestTarget = personTarget;
+        }
+    }
+
+    targetFloor = furthestTarget;
 }
 
 //////////////////////////////////////////////////////
