@@ -4,7 +4,7 @@
  * Building.cpp
  * Project UID 848fee0125dbb5eb53ed294f20dbef81
  *
- * <#Names#>
+ * haohong zheng
  * <#Uniqnames#>
  *
  * Final Project - Elevators
@@ -15,18 +15,55 @@
 using namespace std;
 
 void Building::spawnPerson(Person newPerson){
-    //TODO: Implement spawnPerson
+    const int UP = 1;
+    const int DOWN = -1;
+    const int STAY = 0;
+    int current = newPerson.getCurrentFloor();
+    int target = newPerson.getTargetFloor();
+    
+    if (target > current) {
+        floors[current].addPerson(newPerson, UP);
+    } else if (target < current) {
+        floors[current].addPerson(newPerson, DOWN);
+    } else {
+        floors[current].addPerson(newPerson, STAY);
+    }
 }
 
 void Building::update(Move move){
-    //TODO: Implement update
+    if (move.isPassMove()) {
+        return;
+    }
+    
+    int id = move.getElevatorId();
+    int target = move.getTargetFloor();
+    
+    if (move.isPickupMove()) {
+        int current = elevators[id].getCurrentFloor();
+        int num = move.getNumPeopleToPickup();
+        int list[MAX_PEOPLE_PER_FLOOR];
+        move.copyListOfPeopleToPickup(list);
+        floors[current].removePeople(list, num);
+    }
+    
+    elevators[id].serviceRequest(target);
 }
 
 int Building::tick(Move move){
-    //TODO: Implement tick
-
-    //returning 0 to prevent compilation error
-    return 0;
+    time++;
+    
+    update(move);
+    
+    for (int i = 0; i < NUM_ELEVATORS; i++) {
+        elevators[i].tick(time);
+    }
+    
+    int exploded = 0;
+    for (int i = 0; i < NUM_FLOORS; i++) {
+        exploded += floors[i].tick(time);
+    }
+    
+    return exploded;
 }
 
 //////////////////////////////////////////////////////
