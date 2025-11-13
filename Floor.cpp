@@ -17,14 +17,31 @@
 using namespace std;
 
 int Floor::tick(int currentTime) {
-    //TODO: Implement tick
-
-    //returning 0 to prevent compilation error
-    return 0;
+    int explodeCount = 0;
+    int explodeIndices[MAX_PEOPLE_PER_FLOOR];
+    for (int i = 0; i < numPeople; i++) {
+        if (people[i].tick(currentTime)) {
+            explodeIndices[explodeCount] = i;
+            explodeCount++;
+        }
+    }
+    if (explodeCount > 0) {
+        removePeople(explodeIndices, explodeCount);
+    }
+    return explodeCount;
 }
 
 void Floor::addPerson(Person newPerson, int request) {
-    //TODO: Implement addPerson
+    if (numPeople < MAX_PEOPLE_PER_FLOOR) {
+        people[numPeople] = newPerson;
+        numPeople++;
+        if (request > 0) {
+            hasUpRequest = true;
+        }
+        else if (request < 0) {
+            hasDownRequest = true;
+        }
+    }
 }
 
 void Floor::removePeople(const int indicesToRemove[MAX_PEOPLE_PER_FLOOR],
@@ -41,10 +58,28 @@ void Floor::removePeople(const int indicesToRemove[MAX_PEOPLE_PER_FLOOR],
     sort(targetsToRemove, targetsToRemove + numPeopleToRemove);
     
     //now use targetsToRemove instead of indicesToRemove
+    int removeCount = 0;
+    for (int i = 0; i < numPeopleToRemove; i++) {
+        for (int j = targetsToRemove[i] - removeCount; j < numPeople - 1; j++) {
+            people[j] = people[j + 1];
+        }
+        removeCount++;
+        numPeople--;
+    }
+    resetRequests();
 }
 
 void Floor::resetRequests() {
-    //TODO: Implement resetRequests
+    hasUpRequest = false;
+    hasDownRequest = false;
+    for (int i = 0; i < numPeople; i++) {
+        if (people[i].getTargetFloor() > people[i].getCurrentFloor()) {
+            hasUpRequest = true;
+        }
+        else if (people[i].getTargetFloor() < people[i].getCurrentFloor()) {
+            hasDownRequest = true;
+        }
+    }
 }
 
 //////////////////////////////////////////////////////
