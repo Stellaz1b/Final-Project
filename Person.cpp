@@ -4,8 +4,8 @@
  * Person.cpp
  * Project UID 848fee0125dbb5eb53ed294f20dbef81
  *
- * <#Names#>
- * <#Uniqnames#>
+ * Yibei Zhai/Yancheng Xiang/Haohong Zheng/Lue Xu
+ * yibei/ericxyc/haohongz/kkykky
  *
  * Final Project - Elevators
  */
