@@ -101,8 +101,6 @@ string getAIMoveString(const BuildingState& buildingState) {
         }
     }
 
-    // 如果没有找到可用的 (电梯, 楼层) 组合：
-    // 可能是所有电梯都在忙，或者虽然楼里有人但都已被安排目标。
     if (bestElevator == -1 || bestFloor == -1) {
         return "";
     }
@@ -112,7 +110,7 @@ string getAIMoveString(const BuildingState& buildingState) {
     //if elevator at current floor -> pickup
     if (chosen.currentFloor == bestFloor) {
         string move = "e";
-        move += char('0' + bestElevator);  // 电梯编号（0,1,2）
+        move += char('0' + bestElevator);
         move += 'p';
         return move;
     }
